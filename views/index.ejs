@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <div id="menu-div">
+      <img id="menu" src="images/GBP2017.jpg" />
+    </div>
+    <div id="count-div">
+      <p id="date-text">現在の時刻</p>
+      <p id="date"></p>
+      <p class="text">残</p>
+      <p class="text" id="count1">12</p>
+      <p class="text" id="count2">6</p>
+      <p class="text" id="count3">12</p>
+      <p class="text" id="count4">12</p>
+      <p class="text" id="count5">12</p>
+      <p class="text" id="count6">12</p>
+      <p class="text" id="count7">12</p>
+      <button id="update">更新</button>
+    </div>
+    <script type="text/javascript" src="javascripts/jquery-2.1.3.min.js"></script>
+    <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="javascripts/jquery.todate.js"></script>
+    <script type="text/javascript">
+      
+      $.cookie.json = true;
+      var ipAddress = "localhost:3000"
+      var cookieName = "GBP2017";
+      var saveData = {};
+      
+      $(function(){
+        /*
+        //画像サイズ調整
+        var hsize = $(window).height();
+        $("#menu-div").css("height",hsize + "px");
+        $("#count-div").css("height",hsize + "px");
+      
+        $(window).resize(function(){
+          hsize = $(window).height();
+          $("#menu-div").css("height",hsize + "px");
+          $("#count-div").css("height",hsize + "px");
+        });
+        */
+      
+        //データセット
+        var cookieData = $.cookie(cookieName);
+        if(cookieData){
+          Object.keys(cookieData).forEach(function(key){
+            $("#count" + key).text(cookieData[key]);
+          })
+        }else{
+          getData();
+        }
+      
+        //日付表示 h時：i分：s秒
+        $("#date").toDate({
+          format:"H:i:s"
+        });
+
+        $("#update").click(function(){
+          getData();
+        })
+      
+        //キー入力(カウント)
+        $(window).keyup(function(e){
+          if(e.shiftKey){
+            switch(e.keyCode){
+              case 49:
+                countUP(1);
+                break;
+              case 50:
+                countUP(2);
+                break;
+              case 51:
+                countUP(3);
+                break;
+              case 52:
+                countUP(4);
+                break;
+              case 53:
+                countUP(5);
+                break;
+              case 54:
+                countUP(6);
+                break;
+              case 55:
+                countUP(7);
+                break;
+              default:
+              break;
+            }
+          }
+          else{
+            switch(e.keyCode){
+              case 49:
+                countDown(1);
+                break;
+              case 50:
+                countDown(2);
+                break;
+              case 51:
+                countDown(3);
+                break;
+              case 52:
+                countDown(4);
+                break;
+              case 53:
+                countDown(5);
+                break;
+              case 54:
+                countDown(6);
+                break;
+              case 55:
+                countDown(7);
+                break;
+              default:
+              break;
+            }
+          }
+        })
+      });
+      // カウント
+      function countDown(id){
+        var cnt = $("#count"+id).text();
+        cnt --;
+        if (cnt > 0){
+          $("#count" +id).text(cnt);	
+        }
+        else{
+          $("#count" +id).text(0);
+        }
+        saveCookie(id);
+        sendData(id,cnt);
+      }
+      function countUP(id){
+        var cnt = $("#count"+id).text();
+        if (cnt == 0){
+          $("#count" +id).text(1);
+        }
+        else{
+          cnt ++;
+          $("#count" +id).text(cnt);
+        }
+        saveCookie(id);
+        sendData(id,cnt);
+      }
+      // クッキー保存
+      function saveCookie(id){
+        //$.removeCookie(cookieName);
+        saveData[id] = $("#count" + id).text();
+        console.log(saveData);
+        $.cookie(cookieName,saveData);
+      }
+
+      // データ送信
+      function sendData(id,count){
+        var data = {
+          count:count
+        };
+        console.log(data);
+        $.ajax({
+          url:"http://"+ ipAddress +"/beers/" + id,
+          type:"PUT",
+          data:JSON.stringify(data),
+          contentType:"application/JSON"
+        }).done(function(result){
+          console.log(result);
+        }).fail(function(result){
+          console.log("fail sendData");
+          console.log(result);
+        })
+      }
+
+      // 全データ取得
+      function getData(){
+        $.ajax({
+          url:"http://"+ ipAddress +"/beers",
+          type:"GET",
+          contentType:"application/JSON"
+        }).done(function(result){
+          console.log(result);
+          result.forEach(function(data){
+            $("#count" +data.id).text(data.count);
+          })
+        }).fail(function(result){
+          console.log("fail getData");
+          console.log(result);
+        });
+      }
+      
+      </script>
+  </body>
+</html>
